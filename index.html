@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Woodpecker Guardian</title>
+<meta name="description" content="A non-destructive inspection robot that taps historic timber and reads what is inside from the sound.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#0D1513;
+  --mid:#16221F;
+  --paper:#F3F4F1;
+  --ink:#0D1513;
+  --wood:#A9622F;      /* cedar */
+  --ok:#35C08A;
+  --warn:#FFC53D;
+  --hot:#FF5A1F;
+  --steel:#2B3532;
+  --gutter:clamp(58px,17vw,240px);
+  --font:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--deep);color:var(--paper);font-family:var(--font);font-size:1.0625rem;line-height:1.65;overflow-x:hidden}
+h1,h2,h3{font-stretch:112%;font-weight:800;line-height:1.02;letter-spacing:-.03em}
+h2{font-size:clamp(2rem,5.4vw,4.5rem);max-width:13em}
+p{max-width:34em}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--warn);outline-offset:3px}
+
+/* sound toggle */
+.top{position:fixed;top:14px;right:16px;z-index:30}
+.top button{background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);border-radius:999px;padding:.3rem .95rem;font-size:.875rem;font-weight:600}
+.top button[aria-pressed="true"]{background:var(--warn)}
+
+/* the post: scrolling is the inspection */
+.pillar{position:fixed;z-index:20;left:clamp(10px,4.5vw,64px);top:0;bottom:0;width:clamp(26px,4.4vw,58px);display:flex;flex-direction:column;pointer-events:none}
+.cap,.base{height:18px;margin:0 -8px;background:var(--steel);border:1px solid #47534f}
+.cap{border-radius:0 0 4px 4px}.base{border-radius:4px 4px 0 0}
+.shaft{position:relative;flex:1;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.36),rgba(255,255,255,.1) 38%,rgba(0,0,0,.3)),
+    repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.13) 6px 7px),
+    var(--wood)}
+.mark{position:absolute;left:18%;width:64%;height:3px;border-radius:2px;background:var(--ok);opacity:0;transition:opacity .25s}
+.mark.on{opacity:.95}
+.mark.s{background:var(--warn)}
+.mark.h{background:var(--hot);height:5px;box-shadow:0 0 11px 2px rgba(255,90,31,.75)}
+.ring{position:absolute;left:-8px;right:-8px;top:0;height:34px;border-radius:7px;background:linear-gradient(#f7f8f6,#c9cecb);border:2px solid var(--ink);will-change:transform}
+.beak{position:absolute;right:-13px;top:10px;width:0;height:0;border:6px solid transparent;border-right:13px solid var(--hot)}
+.read{position:absolute;left:calc(100% + 22px);top:3px;white-space:nowrap;background:var(--ok);color:var(--ink);border:1.5px solid var(--ink);border-radius:999px;padding:0 .7rem;font-size:.8125rem;font-weight:700;line-height:1.75}
+.read.h{background:var(--hot);color:#fff}
+.read.s{background:var(--warn)}
+
+/* sections */
+section{padding:clamp(5rem,14vh,10rem) clamp(18px,5vw,72px) clamp(5rem,14vh,10rem) var(--gutter)}
+.paper{background:var(--paper);color:var(--ink)}
+.band{background:var(--mid)}
+h2 + p{margin-top:1.6rem}
+
+/* hero */
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:6vh}
+.hero h1{font-size:clamp(2.3rem,8.6vw,8.75rem);font-weight:900;line-height:.92;letter-spacing:-.045em}
+.hero .lead{font-size:clamp(1.15rem,2.1vw,1.6rem);margin-top:2rem;max-width:24em;line-height:1.4}
+.hero canvas{width:100%;height:clamp(120px,24vh,230px);display:block;margin-top:2.5rem}
+.hero .hint{font-size:.9375rem;color:var(--ok);margin-top:.4rem}
+
+/* cross-section */
+.inside{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(2rem,6vw,6rem);min-height:150vh;align-items:start}
+.inside figure{position:sticky;top:14vh}
+.inside svg{width:100%;max-width:520px;display:block}
+.inside figcaption{font-weight:700;font-stretch:112%;font-size:1.25rem;margin-top:1rem}
+.tunnel{fill:none;stroke:#24100A;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+
+/* sound comparison */
+.demos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(1.25rem,3vw,3rem);margin-top:3rem;max-width:62rem}
+.demo canvas{width:100%;height:170px;display:block;border-bottom:1.5px solid rgba(243,244,241,.3)}
+.demo button{margin-top:1.1rem;background:var(--ok);color:var(--ink);border:0;border-radius:999px;padding:.7rem 1.5rem;font-weight:700}
+.demo button:active{transform:translateY(2px)}
+.demo:nth-child(2) button{background:var(--hot);color:#fff}
+.demo p{margin-top:.8rem;font-size:1rem}
+.fine{font-size:.875rem;opacity:.65;margin-top:2.5rem}
+
+/* pipeline */
+.pipe{height:480vh;padding-top:0;padding-bottom:0}
+.stage{position:sticky;top:0;height:100svh;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(1.5rem,4vw,4rem);align-items:center}
+.stage canvas{width:100%;height:min(64vh,560px);display:block}
+.stage h2{font-size:clamp(1.6rem,3.2vw,2.75rem);margin-bottom:1.75rem}
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{counter-increment:s;padding:.55rem 0 .55rem 2.6rem;position:relative;opacity:.36;transition:opacity .3s}
+.steps li::before{content:counter(s);position:absolute;left:0;top:.45rem;font-weight:900;font-stretch:112%;font-size:1.35rem;color:var(--warn)}
+.steps h3{font-size:1.35rem}
+.steps p{display:none;margin-top:.4rem;font-size:1rem}
+.steps li.on{opacity:1}
+.steps li.on p{display:block}
+
+/* comparison */
+.methods{margin-top:3rem;max-width:58rem}
+.methods div{display:grid;grid-template-columns:13rem minmax(0,1fr);gap:1.5rem;padding:1.3rem 0;border-top:1.5px solid rgba(13,21,19,.22)}
+.methods dt{font-weight:700;font-stretch:112%;font-size:1.15rem}
+.methods .ours{border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);padding:1.9rem 0}
+.methods .ours dt{font-size:1.5rem;font-weight:900;color:#C73E0A}
+.methods .ours dd{font-size:1.2rem;font-weight:500}
+
+/* close */
+.end{min-height:90svh;display:flex;flex-direction:column;justify-content:center}
+.end h2{font-size:clamp(2.2rem,6.6vw,5.75rem);font-weight:900;max-width:12em}
+.end p{margin-top:2rem}
+.end a{color:var(--warn);display:inline-block;margin-top:2.5rem;font-weight:700}
+
+@media (max-width:820px){
+  .read{display:none}
+  .inside{grid-template-columns:1fr;min-height:0}
+  .inside figure{position:static}
+  .demos{grid-template-columns:1fr}
+  .stage{grid-template-columns:1fr;align-content:center;gap:1rem}
+  .stage canvas{height:38vh}
+  .steps li{padding-top:.2rem;padding-bottom:.2rem}
+  .steps h3{font-size:1.1rem}
+  .methods div{grid-template-columns:1fr;gap:.3rem}
+}
+</style>
+</head>
+<body>
+
+<div class="top"><button id="snd" aria-pressed="false">Sound off</button></div>
+
+<aside class="pillar" aria-hidden="true">
+  <div class="cap"></div>
+  <div class="shaft" id="shaft">
+    <div class="ring" id="ring"><span class="beak" id="beak"></span><span class="read" id="read"></span></div>
+  </div>
+  <div class="base"></div>
+</aside>
+
+<main>
+<section class="hero" id="hero">
+  <h1>Woodpecker<br>Guardian</h1>
+  <p class="lead">A robot that knocks on historic timber and hears the damage no one can see.</p>
+  <canvas id="trace" aria-hidden="true"></canvas>
+  <p class="hint">Scroll. The robot on the left works its way down the post, tapping as it goes.</p>
+</section>
+
+<section class="inside paper" id="inside">
+  <div>
+    <h2>Termites eat from the inside out</h2>
+    <p>Termites avoid light and tunnel through the core of the wood. The surface is the last thing to go, so by the time damage shows, the post is already struggling to carry its load.</p>
+    <p style="margin-top:1.2rem">In New Orleans, where nearly every historic building in the French Quarter has been hit, termite damage and control are estimated to cost about $300 million a year. Centuries-old timber temples and palaces in East Asia face the same threat.</p>
+  </div>
+  <figure>
+    <svg viewBox="0 0 400 400" role="img" aria-label="Cross-section of a timber post">
+      <circle cx="200" cy="200" r="186" fill="#6B3A1E"/>
+      <circle cx="200" cy="200" r="178" fill="#D19A62"/>
+      <g id="rings" fill="none" stroke="#8E5429"></g>
+      <g id="tunnels">
+        <path class="tunnel" pathLength="1" stroke-width="11" d="M200 200C230 180 250 220 280 205S320 160 300 130"/>
+        <path class="tunnel" pathLength="1" stroke-width="12" d="M195 205C160 215 150 250 120 245S90 280 110 300"/>
+        <path class="tunnel" pathLength="1" stroke-width="9"  d="M205 195C200 160 170 150 175 115S140 90 150 78"/>
+        <path class="tunnel" pathLength="1" stroke-width="10" d="M210 210C240 240 230 280 260 300S250 330 235 334"/>
+        <path class="tunnel" pathLength="1" stroke-width="8"  d="M190 190C150 170 130 180 100 160"/>
+        <path class="tunnel" pathLength="1" stroke-width="9"  d="M215 200C260 190 280 250 320 245"/>
+        <path class="tunnel" pathLength="1" stroke-width="7"  d="M280 205C290 230 270 250 285 275"/>
+        <path class="tunnel" pathLength="1" stroke-width="7"  d="M120 245C140 215 125 200 135 180"/>
+      </g>
+      <g id="rooms" fill="#24100A" opacity="0">
+        <ellipse cx="203" cy="201" rx="24" ry="18"/><ellipse cx="281" cy="206" rx="15" ry="11"/>
+        <ellipse cx="121" cy="246" rx="16" ry="12"/><ellipse cx="174" cy="117" rx="12" ry="14"/>
+        <ellipse cx="259" cy="298" rx="13" ry="11"/>
+      </g>
+    </svg>
+    <figcaption id="cap"></figcaption>
+  </figure>
+</section>
+
+<section class="band" id="listen">
+  <h2>Hollow wood rings differently</h2>
+  <p>A woodpecker pecks a trunk and finds the hollow spots by how it resonates. This works the same way. Sound timber cuts off short and hard. Hollow timber rings low and long. Try it.</p>
+  <div class="demos">
+    <div class="demo">
+      <canvas id="d0" aria-hidden="true"></canvas>
+      <button data-k="0">Tap sound timber</button>
+      <p>High and brief. The vibration dies almost at once.</p>
+    </div>
+    <div class="demo">
+      <canvas id="d1" aria-hidden="true"></canvas>
+      <button data-k="1">Tap hollow timber</button>
+      <p>Low and lingering. The cavity inside acts as a resonating chamber.</p>
+    </div>
+  </div>
+  <p class="fine">These example sounds are synthesized in your browser to illustrate the principle.</p>
+</section>
+
+<section class="pipe" id="pipe">
+  <div class="stage">
+    <canvas id="pc" aria-hidden="true"></canvas>
+    <div>
+      <h2>From one tap to a diagnosis</h2>
+      <ol class="steps" id="steps">
+        <li><h3>Strike</h3><p>The striker hits the surface with the same force at regular intervals. Only when the force is constant does a difference in sound mean a difference in the wood.</p></li>
+        <li><h3>Capture</h3><p>A piezoelectric sensor pressed against the surface picks up the vibration travelling through the timber, so airborne noise matters far less.</p></li>
+        <li><h3>Feature extraction</h3><p>The signal is cut at the moment of impact, normalized, and unfolded into its frequency content over time.</p></li>
+        <li><h3>Classification</h3><p>A one-dimensional convolutional neural network learns the patterns of decay rate and resonant bands, and separates sound wood from suspected cavities.</p></li>
+        <li><h3>Damage map</h3><p>Results stack up by tap position into a damage map of the whole post, ready to be compared spot for spot at the next inspection.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="paper" id="compare">
+  <h2>An inspection that leaves no hole</h2>
+  <dl class="methods">
+    <div><dt>Visual inspection</dt><dd>Sees the surface only. A hollowed post still looks intact from outside.</dd></div>
+    <div><dt>Resistance drilling</dt><dd>Accurate, but it leaves a hole in the structure it is meant to protect.</dd></div>
+    <div><dt>Microwave detector</dt><dd>Finds termites that are moving right now. One unit costs thousands of dollars and needs a trained operator.</dd></div>
+    <div class="ours"><dt>Acoustic tap diagnosis</dt><dd>Leaves no trace, repeats under identical conditions, and keeps every result on record as data.</dd></div>
+  </dl>
+</section>
+
+<section class="end" id="end">
+  <h2>Timber that has stood for centuries, protected without drilling once.</h2>
+  <p>The inspection of the post on the left is complete. The orange band is where a cavity is suspected.</p>
+  <a href="#hero">Inspect again from the top</a>
+</section>
+</main>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s), clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C={paper:'#F3F4F1',ok:'#35C08A',warn:'#FFC53D',hot:'#FF5A1F',wood:'#A9622F'};
+const T={ok:'Sound',sus:'Borderline',hol:'Cavity suspected',c0:'From the outside, nothing looks wrong.',c1:'Inside, the tunnels have already spread.'};
+
+/* synthesized knocks */
+let ac=null,sndOn=false,lastKnock=0;
+function knock(hollow,vol=.5){
+  if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();
+  if(ac.state==='suspended')ac.resume();
+  const t=ac.currentTime;
+  (hollow?[[176,.42,1],[287,.3,.5],[431,.16,.22]]:[[840,.07,1],[1460,.045,.4]]).forEach(([f,d,a])=>{
+    const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;
+    g.gain.setValueAtTime(a*vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+.03);});
+}
+function paintSnd(){$('#snd').textContent=sndOn?'Sound on':'Sound off';$('#snd').setAttribute('aria-pressed',sndOn);}
+$('#snd').onclick=()=>{sndOn=!sndOn;paintSnd();if(sndOn)knock(false,.4);};
+
+/* canvas helper */
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);
+  if(c.width!==Math.round(r.width*d)||c.height!==Math.round(r.height*d)){c.width=Math.round(r.width*d);c.height=Math.round(r.height*d);}
+  const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,r.width,r.height);return[x,r.width,r.height];}
+
+/* inspection marks on the post */
+const N=48,shaft=$('#shaft'),ring=$('#ring'),read=$('#read'),marks=[];
+const kind=i=>i>=29&&i<=35?'h':(i===28||i===36)?'s':'';
+for(let i=0;i<N;i++){const m=document.createElement('div');m.className='mark '+kind(i);m.style.top=((i+.5)/N*100)+'%';shaft.insertBefore(m,ring);marks.push(m);}
+let lastTap=-1,maxTap=-1;
+
+/* hero: live listening trace */
+const trace=$('#trace'),imp=[];let heroOn=true;
+function tap(h){imp.push({t:performance.now()/1000,h});if(imp.length>12)imp.shift();}
+function wave(d,h){return h?Math.exp(-d*1.7)*Math.sin(d*33)*.9+Math.exp(-d*2.6)*Math.sin(d*54)*.3:Math.exp(-d*9)*Math.sin(d*92);}
+function drawTrace(){
+  if(heroOn){const[x,w,h]=fit(trace),now=performance.now()/1000;
+    x.strokeStyle=C.paper;x.lineWidth=2.2;x.lineJoin='round';x.beginPath();
+    for(let px=0;px<=w;px+=2){const tt=now-(w-px)/170;let y=0;
+      for(const k of imp){const d=tt-k.t;if(d>0)y+=wave(d,k.h);}
+      x.lineTo(px,h/2-clamp(y,-1.2,1.2)*h*.38);}
+    x.stroke();}
+  requestAnimationFrame(drawTrace);}
+new IntersectionObserver(e=>heroOn=e[0].isIntersecting).observe($('#hero'));
+$('#hero').addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;tap(false);if(sndOn)knock(false,.35);});
+
+/* cross-section growth rings */
+const rg=$('#rings');for(let r=14,i=0;r<176;r+=9+((i*7)%5),i++){
+  rg.insertAdjacentHTML('beforeend',`<circle cx="${200+((i*13)%5-2)}" cy="${200+((i*17)%5-2)}" r="${r}" stroke-width="${1+(i%3)*.6}" opacity="${.3+(i%4)*.12}"/>`);}
+const tunnels=[...document.querySelectorAll('.tunnel')];
+
+/* sound comparison */
+const demoProg=[0,0];
+function drawDemo(k){const[x,w,h]=fit($('#d'+k)),p=demoProg[k],cy=h/2,n=500;
+  x.strokeStyle='rgba(243,244,241,.28)';x.lineWidth=1;x.setLineDash([4,6]);x.beginPath();x.moveTo(0,cy);x.lineTo(w,cy);x.stroke();x.setLineDash([]);
+  if(!p)return;x.strokeStyle=k?C.hot:C.ok;x.lineWidth=2.4;x.beginPath();
+  for(let i=0;i<=n*p;i++){const u=i/n,y=k?Math.exp(-u*2.6)*Math.sin(u*46)*.8+Math.exp(-u*4)*Math.sin(u*75)*.25:Math.exp(-u*17)*Math.sin(u*150);
+    x.lineTo(u*w,cy-y*h*.42);}x.stroke();}
+document.querySelectorAll('.demo button').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;knock(!!k,.6);
+  const t0=performance.now();(function go(){demoProg[k]=calm?1:clamp((performance.now()-t0)/(k?900:500));drawDemo(k);if(demoProg[k]<1)requestAnimationFrame(go);})();});
+
+/* pipeline */
+const pc=$('#pc'),stepEls=[...$('#steps').children];let GA=1;
+const heat=v=>{v=clamp(v);const s=[[24,44,39],[53,192,138],[255,197,61],[255,90,31]],f=v*3,i=Math.min(2,Math.floor(f)),u=f-i;
+  return`rgb(${s[i].map((a,j)=>Math.round(a+(s[i+1][j]-a)*u))})`;};
+const phases=[
+ (x,w,h,t)=>{const pw=Math.min(w*.3,160),px=w*.55,py=h*.1,ph=h*.8,cy=h/2;
+   x.fillStyle=C.wood;x.fillRect(px,py,pw,ph);x.strokeStyle='rgba(0,0,0,.2)';x.lineWidth=1;
+   for(let i=1;i<7;i++){x.beginPath();x.moveTo(px+pw*i/7,py);x.lineTo(px+pw*i/7,py+ph);x.stroke();}
+   const e=Math.pow(clamp(t/.4),2),sx=px-100+e*87;
+   x.fillStyle=C.paper;x.fillRect(sx-90,cy-4,80,8);x.beginPath();x.arc(sx,cy,13,0,7);x.fill();
+   if(t>.4){const u=(t-.4)/.6;x.save();x.beginPath();x.rect(px,py,pw,ph);x.clip();x.strokeStyle=C.warn;
+     for(let k=0;k<4;k++){const r=(u*1.4-k*.2)*ph*.55;if(r>0){x.lineWidth=4*(1-u*.6);x.beginPath();x.arc(px,cy,r,-1.57,1.57);x.stroke();}}x.restore();}},
+ (x,w,h,t)=>{const x0=w*.06,x1=w*.94,cy=h/2,n=420;
+   x.strokeStyle='rgba(243,244,241,.25)';x.lineWidth=1;x.beginPath();x.moveTo(x0,cy);x.lineTo(x1,cy);x.stroke();
+   x.strokeStyle=C.paper;x.lineWidth=2.6;x.beginPath();let lx=x0,ly=cy;
+   for(let i=0;i<=n*clamp(t*1.15);i++){const u=i/n,y=Math.exp(-u*3.2)*Math.sin(u*62)*.34+Math.exp(-u*6)*Math.sin(u*140)*.1;lx=x0+(x1-x0)*u;ly=cy-y*h;x.lineTo(lx,ly);}
+   x.stroke();x.fillStyle=C.warn;x.beginPath();x.arc(lx,ly,6,0,7);x.fill();},
+ (x,w,h,t)=>{const cols=30,rows=13,gw=w*.88,gh=h*.62,x0=w*.06,y0=h*.19,cw=gw/cols,ch=gh/rows;
+   for(let c=0;c<cols*clamp(t*1.15);c++)for(let r=0;r<rows;r++){const f=r/rows,
+     res=Math.exp(-Math.pow((f-.18)/.09,2))+.65*Math.exp(-Math.pow((f-.52)/.07,2))+.08,v=res*Math.exp(-c/cols*(1.6+f*6));
+     x.fillStyle=heat(v);x.fillRect(x0+c*cw+1,y0+gh-(r+1)*ch+1,cw-2,ch-2);}},
+ (x,w,h,t)=>{const Ls=[14,10,7,4,2],x0=w*.1,dx=w*.8/4,front=t*5.2;
+   const pos=Ls.map((n,i)=>Array.from({length:n},(_,j)=>[x0+i*dx,h/2+(j-(n-1)/2)*Math.min(i===4?90:30,h*.78/n)]));
+   x.lineWidth=1;for(let i=0;i<4;i++){const a=clamp(front-i);x.strokeStyle=`rgba(53,192,138,${.07+.3*a})`;
+     for(const p of pos[i])for(const q of pos[i+1]){x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);x.stroke();}}
+   pos.forEach((col,i)=>col.forEach((p,j)=>{const a=clamp(front-i+.4);let on,color=C.paper,r=5.5;
+     if(i<4)on=a*(.35+.65*Math.abs(Math.sin(j*2.3+i*1.7)));else{r=15;color=j?C.hot:C.ok;on=j?clamp((t-.72)*5):.22;}
+     x.globalAlpha=GA*(.18+.82*on);x.fillStyle=color;x.beginPath();x.arc(p[0],p[1],r,0,7);x.fill();}));x.globalAlpha=GA;},
+ (x,w,h,t)=>{const pw=Math.min(w*.32,170),px=(w-pw)/2,py=h*.06,ph=h*.88,cols=4,rows=14;
+   x.fillStyle=C.wood;x.fillRect(px,py,pw,ph);let n=0;
+   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(n++>t*1.25*cols*rows)return;
+     const d=Math.hypot((c-2.2)/1.6,(r-9)/2.6);x.fillStyle=d<.8?C.hot:d<1.25?C.warn:'#0D1513';
+     x.beginPath();x.arc(px+pw*(c+.5)/cols,py+ph*(r+.5)/rows,d<1.25?8.5:4.5,0,7);x.fill();}}
+];
+function drawPipe(p){const[x,w,h]=fit(pc),f=p*5,i=Math.min(4,Math.floor(f)),t=clamp(f-i);
+  GA=Math.min(1,i===0?1:t*6,i===4?1:(1-t)*6);x.globalAlpha=GA;phases[i](x,w,h,t);
+  stepEls.forEach((li,k)=>li.classList.toggle('on',k===i));}
+
+/* scroll */
+function prog(el,start,span){const r=el.getBoundingClientRect();return clamp((start-r.top)/span(r));}
+function onScroll(){
+  const vh=innerHeight,P=clamp(scrollY/Math.max(1,document.documentElement.scrollHeight-vh));
+  ring.style.transform=`translateY(${P*(shaft.clientHeight-34)}px)`;
+  const idx=Math.min(N-1,Math.floor(P*N));
+  if(idx!==lastTap){const k=kind(idx),fresh=lastTap!==-1;lastTap=idx;
+    read.textContent=T[k==='h'?'hol':k==='s'?'sus':'ok'];read.className='read '+k;
+    if(idx>maxTap){maxTap=idx;marks.forEach((m,i)=>i<=maxTap&&m.classList.add('on'));}
+    if(fresh){tap(k==='h');
+      if(!calm)$('#beak').animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(0)'}],{duration:150});
+      const now=performance.now();if(sndOn&&now-lastKnock>90){lastKnock=now;knock(k==='h',.28);}}}
+  const pi=prog($('#inside'),vh*.7,r=>r.height*.62);
+  tunnels.forEach((t,i)=>t.style.strokeDashoffset=1-clamp(pi*1.5-i*.06));
+  $('#rooms').style.opacity=clamp(pi*2-1);$('#cap').textContent=pi>.45?T.c1:T.c0;
+  drawPipe(prog($('#pipe'),0,r=>r.height-vh));
+}
+let tick=false;
+addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(()=>{tick=false;onScroll();});}},{passive:true});
+addEventListener('resize',()=>{onScroll();drawDemo(0);drawDemo(1);});
+paintSnd();onScroll();drawDemo(0);drawDemo(1);drawTrace();
+[500,850,1900].forEach((d,i)=>setTimeout(()=>tap(i===2),d));
+})();
+</script>
+</body>
+</html>
