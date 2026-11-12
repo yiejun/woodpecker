@@ -139,7 +139,7 @@ h2 + p{margin-top:1.6rem}
 <main>
 <section class="hero" id="hero">
   <h1>Woodpecker<br>Guardian</h1>
-  <p class="lead">A robot that knocks on historic timber and hears the damage no one can see.</p>
+  <p class="lead">A bio-inspired robot that listens beneath the surface of historic timber to detect hidden damage.</p>
   <canvas id="trace" aria-hidden="true"></canvas>
   <p class="hint">Scroll. The robot on the left works its way down the post, tapping as it goes.</p>
 </section>
@@ -147,8 +147,8 @@ h2 + p{margin-top:1.6rem}
 <section class="inside paper" id="inside">
   <div>
     <h2>Termites eat from the inside out</h2>
-    <p>Termites avoid light and tunnel through the core of the wood. The surface is the last thing to go, so by the time damage shows, the post is already struggling to carry its load.</p>
-    <p style="margin-top:1.2rem">In New Orleans, where nearly every historic building in the French Quarter has been hit, termite damage and control are estimated to cost about $300 million a year. Centuries-old timber temples and palaces in East Asia face the same threat.</p>
+    <p>Termites avoid light and tunnel deep inside wooden structures. They leave the outer surface intact. By the time visible damage appears, the wood may have already lost much of its structural strength.</p>
+    <p style="margin-top:1.2rem">In New Orleans, termite damage and prevention are estimated to cost approximately $300 million annually. Centuries-old wooden temples and palaces across East Asia face similar risks. Early detection is crucial to preserve cultural heritage.</p>
   </div>
   <figure>
     <svg viewBox="0 0 400 400" role="img" aria-label="Cross-section of a timber post">
@@ -176,18 +176,18 @@ h2 + p{margin-top:1.6rem}
 </section>
 
 <section class="band" id="listen">
-  <h2>Hollow wood rings differently</h2>
-  <p>A woodpecker pecks a trunk and finds the hollow spots by how it resonates. This works the same way. Sound timber cuts off short and hard. Hollow timber rings low and long. Try it.</p>
+  <h2>Hollow wood sounds different.</h2>
+  <p>Woodpeckers tap on trees and use sound to locate hollow spaces beneath the surface. Our robot applies the same principle. Solid wood produces a short, sharp sound, but hollow wood produces a deeper, longer-lasting resonance. Listen to the difference yourself.</p>
   <div class="demos">
     <div class="demo">
       <canvas id="d0" aria-hidden="true"></canvas>
       <button data-k="0">Tap sound timber</button>
-      <p>High and brief. The vibration dies almost at once.</p>
+      <p>Short, sharp sound</p>
     </div>
     <div class="demo">
       <canvas id="d1" aria-hidden="true"></canvas>
       <button data-k="1">Tap hollow timber</button>
-      <p>Low and lingering. The cavity inside acts as a resonating chamber.</p>
+      <p>Deep, lingering sound</p>
     </div>
   </div>
   <p class="fine">These example sounds are synthesized in your browser to illustrate the principle.</p>
@@ -200,28 +200,28 @@ h2 + p{margin-top:1.6rem}
       <h2>From one tap to a diagnosis</h2>
       <ol class="steps" id="steps">
         <li><h3>Strike</h3><p>The striker hits the surface with the same force at regular intervals. Only when the force is constant does a difference in sound mean a difference in the wood.</p></li>
-        <li><h3>Capture</h3><p>A piezoelectric sensor pressed against the surface picks up the vibration travelling through the timber, so airborne noise matters far less.</p></li>
-        <li><h3>Feature extraction</h3><p>The signal is cut at the moment of impact, normalized, and unfolded into its frequency content over time.</p></li>
-        <li><h3>Classification</h3><p>A one-dimensional convolutional neural network learns the patterns of decay rate and resonant bands, and separates sound wood from suspected cavities.</p></li>
-        <li><h3>Damage map</h3><p>Results stack up by tap position into a damage map of the whole post, ready to be compared spot for spot at the next inspection.</p></li>
+        <li><h3>Capture</h3><p>A piezoelectric sensor placed against the wood detects vibrations traveling through the timber, which minimizes interference from surrounding noise.</p></li>
+        <li><h3>Feature extraction</h3><p>The signal is segmented at the moment of impact, normalized, and transformed into a time-frequency representation to analyze how vibrations change over time.</p></li>
+        <li><h3>Classification</h3><p>A one-dimensional convolutional neural network analyzes vibration decay rates and resonance patterns to distinguish solid wood from wood with potential internal cavities.</p></li>
+        <li><h3>Damage map</h3><p>Results from each tapping location are combined to create a damage map of the entire wooden post to track changes and compare with future inspections.</p></li>
       </ol>
     </div>
   </div>
 </section>
 
 <section class="paper" id="compare">
-  <h2>An inspection that leaves no hole</h2>
+  <h2>Other inspection Methods</h2>
   <dl class="methods">
-    <div><dt>Visual inspection</dt><dd>Sees the surface only. A hollowed post still looks intact from outside.</dd></div>
-    <div><dt>Resistance drilling</dt><dd>Accurate, but it leaves a hole in the structure it is meant to protect.</dd></div>
-    <div><dt>Microwave detector</dt><dd>Finds termites that are moving right now. One unit costs thousands of dollars and needs a trained operator.</dd></div>
-    <div class="ours"><dt>Acoustic tap diagnosis</dt><dd>Leaves no trace, repeats under identical conditions, and keeps every result on record as data.</dd></div>
+    <div><dt>Visual inspection</dt><dd>Only examines the surface: difficult to detect internal damage.</dd></div>
+    <div><dt>Resistance drilling</dt><dd>Provides detailed information about internal wood conditions but requires drilling into the structure</dd></div>
+    <div><dt>Microwave detector</dt><dd>Detects termite movement inside wood but requires specialized equipment that can cost thousands of dollars.</dd></div>
+    <div class="ours"><dt>Our Method</dt><dd>Detects potential internal damage without drilling & consistent measurements</dd></div>
   </dl>
 </section>
 
 <section class="end" id="end">
-  <h2>Timber that has stood for centuries, protected without drilling once.</h2>
-  <p>The inspection of the post on the left is complete. The orange band is where a cavity is suspected.</p>
+  <h2>Protecting Centuries-Old Timber Without Drilling a Single Hole.</h2>
+  <p>The wooden post on the left has been fully inspected. The orange highlighted area indicates a potential internal cavity detected through acoustic analysis.</p>
   <a href="#hero">Inspect again from the top</a>
 </section>
 </main>
